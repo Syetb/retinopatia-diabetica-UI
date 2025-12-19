@@ -161,69 +161,32 @@ if menu == "Subir imágenes":
         # Cargar imagen
         image = Image.open(uploaded_file)
 
-        # Layout en columnas
-        col1, col2 = st.columns([1, 1])
+        # Inicializar estado para resultados
+        if 'result' not in st.session_state:
+            st.session_state.result = None
+
+        # Layout en 3 columnas
+        col1, col2, col3 = st.columns([1, 1, 1])
 
         with col1:
             st.subheader("🔍 Imagen cargada")
             st.image(image, caption=uploaded_file.name,
                      use_container_width=True)
 
-        with col2:
-            st.subheader("📊 Resultado")
-
-            # Botón de clasificación
+            # Botón debajo de la imagen
             if st.button("🔮 Clasificar imagen", type="primary", use_container_width=True):
-
-                # Mostrar spinner
                 with st.spinner("Analizando imagen..."):
                     try:
-                        # Convertir imagen a base64
                         image_b64 = image_to_base64(image)
-
-                        # Enviar a la API
                         response = requests.post(
                             f"{API_URL}/predict",
                             json={"image_base64": image_b64},
                             timeout=30
                         )
-
                         if response.status_code == 200:
-                            result = response.json()
-
-                            # Mostrar resultado principal
-                            severity_icon = get_severity_color(
-                                result['prediction'])
-
-                            st.success("✅ Análisis completado")
-
-                            st.markdown(f"""
-                            ### {severity_icon} Diagnóstico: **{result['description']}**
-                            
-                            **Clase:** `{result['prediction']}`  
-                            **Confianza:** `{result['confidence']*100:.2f}%`
-                            """)
-
-                            # Barra de progreso de confianza
-                            st.progress(result['confidence'])
-
-                            # Mostrar todas las probabilidades
-                            st.markdown("---")
-                            st.subheader("📈 Probabilidades por clase")
-
-                            for clase, prob in sorted(
-                                result['all_probabilities'].items(),
-                                key=lambda x: x[1],
-                                reverse=True
-                            ):
-                                icon = get_severity_color(clase)
-                                st.write(f"{icon} **{clase}**")
-                                st.progress(prob)
-                                st.caption(f"{prob*100:.2f}%")
-
+                            st.session_state.result = response.json()
                         else:
                             st.error(f"Error en la API: {response.text}")
-
                     except requests.exceptions.Timeout:
                         st.error(
                             "⏱️ Tiempo de espera agotado. Intenta de nuevo.")
@@ -231,6 +194,40 @@ if menu == "Subir imágenes":
                         st.error("🔌 No se pudo conectar con la API.")
                     except Exception as e:
                         st.error(f"❌ Error: {str(e)}")
+
+        with col2:
+            st.subheader("📊 Resultado")
+
+            if st.session_state.result:
+                result = st.session_state.result
+                severity_icon = get_severity_color(result['prediction'])
+
+                st.success("✅ Análisis completado")
+
+                st.markdown(f"""
+                ### {severity_icon} Diagnóstico: **{result['description']}**
+                
+                **Clase:** `{result['prediction']}`  
+                **Confianza:** `{result['confidence']*100:.2f}%`
+                """)
+
+                st.progress(result['confidence'])
+
+        with col3:
+            st.subheader("📈 Probabilidades por clase")
+
+            if st.session_state.result:
+                result = st.session_state.result
+
+                for clase, prob in sorted(
+                    result['all_probabilities'].items(),
+                    key=lambda x: x[1],
+                    reverse=True
+                ):
+                    icon = get_severity_color(clase)
+                    st.write(f"{icon} **{clase}**")
+                    st.progress(prob)
+                    st.caption(f"{prob*100:.2f}%")
 
 elif menu == "Instrucciones":
     st.title("👁️ Sistema de Detección de Retinopatía Diabética")
