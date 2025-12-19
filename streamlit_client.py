@@ -111,17 +111,10 @@ def check_api_health() -> bool:
 # =============================================================================
 # SIDEBAR
 # =============================================================================
-st.sidebar.title("🏥 UIDE")
-st.sidebar.markdown("---")
 
-# Estado de la API
-api_status = check_api_health()
-if api_status:
-    st.sidebar.success("✅ API Conectada")
-else:
-    st.sidebar.error("❌ API Desconectada")
+logo = Image.open("./assets/uide_log_trasnparent.png")
 
-st.sidebar.markdown("---")
+st.sidebar.image(logo, use_container_width=True)
 
 menu = st.sidebar.radio(
     "📋 Menú",
@@ -129,7 +122,16 @@ menu = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
+# Estado de la API
+api_status = check_api_health()
+if api_status:
+    st.sidebar.success("✅ API Conectada")
+else:
+    st.sidebar.error("❌ API Desconectada")
+
+
 st.sidebar.info(f"🔗 API: {API_URL}")
+
 
 st.sidebar.markdown("---")
 st.sidebar.info(f"🧑🏻‍💻👩🏻‍💻 Estudiantes: {ESTUDIANTES}")
@@ -231,14 +233,14 @@ if menu == "Subir imágenes":
                         st.error(f"❌ Error: {str(e)}")
 
 elif menu == "Instrucciones":
-    st.title("ℹ️ Sistema de Detección de Retinopatía Diabética")
+    st.title("👁️ Sistema de Detección de Retinopatía Diabética")
 
     st.markdown("""
     Esta aplicación utiliza **Inteligencia Artificial** para clasificar imágenes del fondo 
     de ojo y detectar signos de Retinopatía Diabética.
     """)
 
-    st.subheader("🎯 Clases de clasificación")
+    st.subheader("Clases de clasificación")
 
     col1, col2 = st.columns(2)
 
@@ -272,9 +274,4 @@ elif menu == "Instrucciones":
     - **Arquitectura:** VGG16 con Transfer Learning
     - **Entrada:** Imágenes 224x224 RGB
     - **Salida:** 5 clases de clasificación
-    """)
-
-    st.warning("""
-    ⚠️ **Disclaimer:** Esta herramienta es solo para fines educativos y de investigación. 
-    No reemplaza el diagnóstico médico profesional.
     """)
